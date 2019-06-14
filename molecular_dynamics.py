@@ -1,11 +1,12 @@
 import numpy as np
 import ase
-
+import time
 import rmsd
 
 from ase.io.trajectory import Trajectory
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.md.verlet import VelocityVerlet
+from ase.optimize import BFGS
 
 from ase import units
 
@@ -33,6 +34,32 @@ def dump_xyz(atoms, filename):
     return
 
 
+def optimize_molecule(nuclear_charges, coordinates):
+
+    # LOAD AND SET MODEL
+    parameters = {}
+    parameters["offset"] = -97084.83100465109
+    parameters["sigma"] = 10.0
+
+    alphas = np.load(FILENAME_ALPHAS)
+    X = np.load(FILENAME_REPRESENTATIONS)
+    Q = np.load(FILENAME_CHARGES)
+
+    calculator = QMLCalculator(parameters, X, Q, alphas)
+
+    molecule = ase.Atoms(nuclear_charges, coordinates)
+    molecule.set_calculator(calculator)
+
+    energy = molecule.get_potential_energy()
+    forces = molecule.get_forces()
+
+    dyn = BFGS(molecule)
+    dyn.run(fmax=0.5)
+
+    dump_xyz(molecule, "tmp_opt.xyz")
+
+    return
+
 
 def constant_energy(nuclear_charges, coordinates, dump=None):
     """
@@ -47,32 +74,38 @@ def constant_energy(nuclear_charges, coordinates, dump=None):
     X = np.load(FILENAME_REPRESENTATIONS)
     Q = np.load(FILENAME_CHARGES)
 
-
     calculator = QMLCalculator(parameters, X, Q, alphas)
 
     molecule = ase.Atoms(nuclear_charges, coordinates)
     molecule.set_calculator(calculator)
 
-    # energy = molecule.get_potential_energy()
-    # forces = molecule.get_forces()
-
     # Set the momenta corresponding to T=300K
-    MaxwellBoltzmannDistribution(molecule, 300 * units.kB)
+    MaxwellBoltzmannDistribution(molecule, 200 * units.kB)
 
     # We want to run MD with constant energy using the VelocityVerlet algorithm.
-    dyn = VelocityVerlet(molecule, 5 * units.fs)  # 5 fs time step.
+    dyn = VelocityVerlet(molecule, 1*units.fs)  # 5 fs time step.
 
-    if dump is not None:
-        traj = Trajectory(dump, 'w', molecule)
-        dyn.attach(traj.write, interval=1)
-
-
-    dump_xyz(molecule, "tmp_step0.xyz")
-
-    dyn.run(1)
+    # if dump is not None:
+    #     traj = Trajectory(dump, 'w', molecule)
+    #     dyn.attach(traj.write, interval=5)
 
 
-    dump_xyz(molecule, "tmp_step_f.xyz")
+    def printenergy(a=molecule,t=None):  # store a reference to atoms in the definition.
+        """Function to print the potential, kinetic and total energy."""
+        epot = a.get_potential_energy() / len(a)
+        ekin = a.get_kinetic_energy() / len(a)
+        print('pEpot = %.2feV  Ekin = %.2feV (T=%3.0fK)  '
+                    'Etot = %.4feV t=%.4f' % (epot, ekin, ekin / (1.5 * units.kB), epot + ekin, t))
+
+
+    for i in range(10):
+
+        start = time.time()
+        dyn.run(1)
+        end = time.time()
+
+        printenergy(t=end-start)
+
 
     return
 
@@ -90,6 +123,9 @@ def main():
              [-1.68213881, -0.60620688, -0.97804526],
              [-1.18668224, -1.07395366,  0.67075071],
              [ 1.37492532, -0.56618891, -0.83172035]])
+
+
+    # optimize_molecule(nuclear_charges, coordinates)
 
     constant_energy(nuclear_charges, coordinates, dump='dump.traj')
 

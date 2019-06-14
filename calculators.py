@@ -17,6 +17,8 @@ class QMLCalculator(Calculator):
 
                 self.set_model(alphas, representations, charges, offset, sigma)
 
+                self.energy = 0.0
+
 
         def set_model(self, alphas, representations, charges, offset, sigma):
 
@@ -35,6 +37,11 @@ class QMLCalculator(Calculator):
 
 
         def query(self, atoms=None):
+
+            # kcal/mol til ev
+            # kcal/mol/aangstrom til ev / aangstorm
+            conv_energy = 0.0433635093659
+            conv_force = 0.0433635093659
 
             coordinates = atoms.get_positions()
             nuclear_charges = atoms.get_atomic_numbers()
@@ -56,18 +63,20 @@ class QMLCalculator(Calculator):
 
             # Energy prediction
             energy_predicted = np.dot(Kse, self.alphas)[0] + self.offset
-            self.energy = energy_predicted
+            self.energy = energy_predicted*conv_energy
 
             # Force prediction
             forces_predicted= np.dot(Ks, self.alphas).reshape((len(nuclear_charges),3))
-            self.forces = forces_predicted
+            self.forces = forces_predicted*conv_force
 
             return
 
 
         def get_potential_energy(self, atoms=None, force_consistent=False):
 
-            self.query(atoms=atoms)
+            if self.energy == 0.0:
+                self.query(atoms=atoms)
+
             energy = self.energy
 
             return energy

@@ -13,10 +13,10 @@ env:
 
 
 train:
-	./env/bin/python train_test.py
+	./env/bin/python train.py
 
 test:
-	./env/bin/python train_test.py
+	./env/bin/python test.py
 
 run:
 	./env/bin/python molecular_dynamics.py

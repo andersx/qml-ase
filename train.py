@@ -21,7 +21,12 @@ FILENAME_TEST = "data/ethanol_ccsd_t-test.npz"
 FILENAME_TRAIN = "data/ethanol_ccsd_t-train.npz"
 
 
-def get_data_from_file(filename, n=100):
+def get_data_from_file(filename, n=100, convert=False):
+
+    # to convert Hartree/Bohr to (kcal/mol)/Angstrom
+    conv_force = 27.2114/0.529
+    conv_energy = 27.2114
+
 
     data = np.load(filename)
 
@@ -61,7 +66,11 @@ def get_data_from_file(filename, n=100):
     dX = np.array(dX)
     E  = np.array(E).flatten()
     F  = np.array(F)
-    
+
+    if convert:
+        E *= conv_energy
+        F *= conv_force
+
     return X, dX, Q, E, F
 
 
