@@ -1,0 +1,4 @@
+numpy
+scipy
+ase
+git+git://github.com/andersx/qml@gradient_kernel
