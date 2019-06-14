@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import sys
-sys.path.insert(0, "/home/andersx/dev/qml/gradient_kernel/build/lib.linux-x86_64-3.5")
 
 import numpy as np
 np.random.seed(666)
@@ -16,6 +15,11 @@ from qml.representations import generate_fchl_acsf
 
 from qml.kernels import get_atomic_local_kernel
 from qml.kernels import get_atomic_local_gradient_kernel
+
+
+FILENAME_TEST = "data/ethanol_ccsd_t-test.npz"
+FILENAME_TRAIN = "data/ethanol_ccsd_t-train.npz"
+
 
 def get_data_from_file(filename, n=100):
 
@@ -65,8 +69,8 @@ def test_fchl_acsf_operator():
 
     SIGMA = 10.0
 
-    X,  dX,  Q,  E,  F  = get_data_from_file("ethanol_ccsd_t-train.npz", n=40)
-    Xs, dXs, Qs, Es, Fs = get_data_from_file("ethanol_ccsd_t-test.npz",  n=20)
+    X,  dX,  Q,  E,  F  = get_data_from_file(FILENAME_TRAIN, n=40)
+    Xs, dXs, Qs, Es, Fs = get_data_from_file(FILENAME_TEST, n=20)
 
     offset = E.mean()
     E  -= offset
@@ -119,10 +123,11 @@ def test_fchl_acsf_operator():
 
 
 def train_only():
-    
+
+    SIGMA = 10.0
 
     # Read training data from file
-    X,  dX,  Q,  E,  F  = get_data_from_file("ethanol_ccsd_t-train.npz", n=40)
+    X,  dX,  Q,  E,  F  = get_data_from_file(FILENAME_TRAIN, n=40)
 
     offset = E.mean()
     E  -= offset

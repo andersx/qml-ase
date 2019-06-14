@@ -10,7 +10,10 @@ env:
 	${PYTHON} -m venv env
 	./env/bin/pip install numpy
 	./env/bin/pip install -r requirements.txt
-	
+
+
+test:
+	./env/bin/python train_test.py
 
 
 clean:
@@ -19,4 +22,5 @@ clean:
 
 super-clean:
 	rm -r data env
+
 
