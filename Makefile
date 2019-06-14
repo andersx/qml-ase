@@ -12,8 +12,14 @@ env:
 	./env/bin/pip install -r requirements.txt
 
 
+train:
+	./env/bin/python train_test.py
+
 test:
 	./env/bin/python train_test.py
+
+run:
+	./env/bin/python molecular_dynamics.py
 
 
 clean:
