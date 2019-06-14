@@ -145,18 +145,18 @@ def train_only():
     print("Alphas operator ...")
     alpha = svd_solve(C, Y, rcond=1e-11)
 
-    np.save("training_alphas.npy", alpha)
-    np.save("training_Q.npy", Q)
-    np.save("training_X.npy", X)
+    np.save("data/training_alphas.npy", alpha)
+    np.save("data/training_Q.npy", Q)
+    np.save("data/training_X.npy", X)
 
 
 def predict_only():
 
 
     # Initialize training data (only need to do this once)
-    alpha = np.load("training_alphas.npy")
-    X     = np.load("training_X.npy")
-    Q     = np.load("training_Q.npy")
+    alpha = np.load("data/training_alphas.npy")
+    X     = np.load("data/training_X.npy")
+    Q     = np.load("data/training_Q.npy")
 
     # Define a molecule
     nuclear_charges = np.array([6, 6, 8, 1, 1, 1, 1, 1, 1])
