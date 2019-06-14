@@ -1,7 +1,7 @@
 
 PYTHON=python3
 
-all: data
+all: data env
 
 data:
 	bash download_data.sh
@@ -11,3 +11,12 @@ env:
 	./env/bin/pip install numpy
 	./env/bin/pip install -r requirements.txt
 	
+
+
+clean:
+	echo "not"
+
+
+super-clean:
+	rm -r data env
+
