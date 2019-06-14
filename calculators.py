@@ -1,4 +1,5 @@
 import numpy as np
+import time
 from ase.calculators.general import Calculator
 
 from qml.kernels import (get_atomic_local_gradient_kernel,
@@ -33,10 +34,14 @@ class QMLCalculator(Calculator):
                 self.sigma = sigma
                 self.max_atoms =  self.repr.shape[1]
 
+                self.n_atoms = len(charges[0])
+
                 return
 
 
         def query(self, atoms=None):
+
+            now = time.time()
 
             # kcal/mol til ev
             # kcal/mol/aangstrom til ev / aangstorm
@@ -54,8 +59,8 @@ class QMLCalculator(Calculator):
 
             # Put data into arrays
             Qs = [nuclear_charges]
-            Xs = np.array([rep])
-            dXs = np.array([drep])
+            Xs = np.array([rep], order="F")
+            dXs = np.array([drep], order="F")
 
             # Get kernels
             Kse = get_atomic_local_kernel(self.repr, Xs, self.charges, Qs, self.sigma)
@@ -66,16 +71,20 @@ class QMLCalculator(Calculator):
             self.energy = energy_predicted*conv_energy
 
             # Force prediction
-            forces_predicted= np.dot(Ks, self.alphas).reshape((len(nuclear_charges),3))
+            forces_predicted= np.dot(Ks, self.alphas).reshape((self.n_atoms, 3))
             self.forces = forces_predicted*conv_force
+
+            end = time.time()
+
+            print("query: {:}".format(end-now))
 
             return
 
 
         def get_potential_energy(self, atoms=None, force_consistent=False):
 
-            if self.energy == 0.0:
-                self.query(atoms=atoms)
+            # if self.energy == 0.0:
+            #     self.query(atoms=atoms)
 
             energy = self.energy
 

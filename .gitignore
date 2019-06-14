@@ -1,6 +1,7 @@
 
 env
 
+*.cprof
 *.xyz
 *.traj
 *.npy

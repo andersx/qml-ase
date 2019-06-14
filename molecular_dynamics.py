@@ -74,6 +74,10 @@ def constant_energy(nuclear_charges, coordinates, dump=None):
     X = np.load(FILENAME_REPRESENTATIONS)
     Q = np.load(FILENAME_CHARGES)
 
+    alphas = np.array(alphas, order="F")
+    X = np.array(X, order="F")
+    # Q = np.array(Q, order="F")
+
     calculator = QMLCalculator(parameters, X, Q, alphas)
 
     molecule = ase.Atoms(nuclear_charges, coordinates)
@@ -101,7 +105,7 @@ def constant_energy(nuclear_charges, coordinates, dump=None):
     for i in range(10):
 
         start = time.time()
-        dyn.run(1)
+        dyn.run(0)
         end = time.time()
 
         printenergy(t=end-start)
