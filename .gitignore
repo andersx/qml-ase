@@ -1,6 +1,7 @@
 
 env
 
+*.npy
 *.npz
 *.zip
 
