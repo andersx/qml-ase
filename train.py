@@ -3,18 +3,19 @@
 import sys
 
 import numpy as np
-np.random.seed(666)
-
-import scipy
-
 import qml
-
+import scipy
+from qml.kernels import (get_atomic_local_gradient_kernel,
+                         get_atomic_local_kernel)
 from qml.math import svd_solve
-
 from qml.representations import generate_fchl_acsf
 
-from qml.kernels import get_atomic_local_kernel
-from qml.kernels import get_atomic_local_gradient_kernel
+np.random.seed(666)
+
+
+
+
+
 
 
 FILENAME_TEST = "data/ethanol_ccsd_t-test.npz"

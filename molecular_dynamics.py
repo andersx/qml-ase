@@ -1,17 +1,15 @@
-import numpy as np
-import ase
 import time
-import rmsd
 
+import ase
+import numpy as np
+import rmsd
+from ase import units
 from ase.io.trajectory import Trajectory
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.md.verlet import VelocityVerlet
 from ase.optimize import BFGS
 
-from ase import units
-
 from calculators import QMLCalculator
-
 
 FILENAME_ALPHAS = "data/training_alphas.npy"
 FILENAME_REPRESENTATIONS = "data/training_X.npy"
