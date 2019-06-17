@@ -1,5 +1,6 @@
 
 env
+narupa-protocol
 
 *.cprof
 *.xyz

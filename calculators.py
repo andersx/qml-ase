@@ -57,8 +57,6 @@ class QMLCalculator(Calculator):
 
     def query(self, atoms=None):
 
-        now = time.time()
-
         # kcal/mol til ev
         # kcal/mol/aangstrom til ev / aangstorm
         conv_energy = 0.0433635093659
@@ -89,10 +87,6 @@ class QMLCalculator(Calculator):
         # Force prediction
         forces_predicted = np.dot(Ks, self.alphas).reshape((self.n_atoms, 3))
         self.forces = forces_predicted * conv_force
-
-        end = time.time()
-
-        print("query: {:}".format(end - now))
 
         return
 
