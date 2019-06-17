@@ -92,6 +92,7 @@ def constant_energy(nuclear_charges, coordinates, dump=None):
     #     dyn.attach(traj.write, interval=5)
 
 
+
     def printenergy(a=molecule,t=None):  # store a reference to atoms in the definition.
         """Function to print the potential, kinetic and total energy."""
         epot = a.get_potential_energy() / len(a)

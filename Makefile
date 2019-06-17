@@ -9,7 +9,8 @@ data:
 env:
 	${PYTHON} -m venv env
 	./env/bin/pip install numpy
-	./env/bin/pip install -r requirements.txt
+	./env/bin/pip install -r requirements.txt --no-cache-dir
+
 
 
 train:
