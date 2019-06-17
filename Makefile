@@ -5,7 +5,8 @@ CONDA=conda
 all: data env
 
 data:
-	bash download_data.sh
+	bash scripts/download_ethanol.sh
+	bash scripts/download_aspirin.sh
 
 env:
 	${CONDA} env create -f environment.yml -p env
@@ -20,7 +21,7 @@ activate: env
 	source activate ./env
 
 train:
-	${PYTHON} train.py
+	${PYTHON} train.py ethanol
 
 test:
 	${PYTHON} test.py

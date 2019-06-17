@@ -9,7 +9,7 @@ from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.md.verlet import VelocityVerlet
 from ase.optimize import BFGS
 from narupa.ase import ASEImdServer
-from calculators import QMLCalculator
+from calculators import QMLCalculator, get_calculator
 
 FILENAME_ALPHAS = "data/training_alphas.npy"
 FILENAME_REPRESENTATIONS = "data/training_X.npy"
@@ -30,24 +30,21 @@ def dump_xyz(atoms, filename):
     return
 
 
-def serve_md(nuclear_charges, coordinates):
+def serve_md(nuclear_charges, coordinates, calculator=None):
     """
     """
 
-    # LOAD AND SET MODEL
-    parameters = {}
-    parameters["offset"] = -97084.83100465109
-    parameters["sigma"] = 10.0
+    if calculator is None:
+        parameters = {}
+        parameters["offset"] = -97084.83100465109
+        parameters["sigma"] = 10.0
+        alphas = np.load(FILENAME_ALPHAS)
+        X = np.load(FILENAME_REPRESENTATIONS)
+        Q = np.load(FILENAME_CHARGES)
+        alphas = np.array(alphas, order="F")
+        X = np.array(X, order="F")
+        calculator = QMLCalculator(parameters, X, Q, alphas)
 
-    alphas = np.load(FILENAME_ALPHAS)
-    X = np.load(FILENAME_REPRESENTATIONS)
-    Q = np.load(FILENAME_CHARGES)
-
-    alphas = np.array(alphas, order="F")
-    X = np.array(X, order="F")
-
-    # SET CALCULATE CLASS
-    calculator = QMLCalculator(parameters, X, Q, alphas)
 
     # SET MOLECULE
     molecule = ase.Atoms(nuclear_charges, coordinates)
@@ -74,6 +71,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--mol', action='store', default=None, help='Load molecule for live simulation', metavar="FILE")
+    parser.add_argument('--model', action='store', default="ethanol", help='')
     args = parser.parse_args()
 
     if args.mol is None:
@@ -92,7 +90,8 @@ def main():
 
         nuclear_charges, coordinates = rmsd.get_coordinates_xyz(args.mol)
 
-    serve_md(nuclear_charges, coordinates)
+    calculator = get_calculator(args.model)
+    serve_md(nuclear_charges, coordinates, calculator=calculator)
 
     return
 

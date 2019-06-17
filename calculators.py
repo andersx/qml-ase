@@ -107,3 +107,36 @@ class QMLCalculator(Calculator):
         forces = self.forces
 
         return forces
+
+
+def get_calculator(dataname):
+
+    datadir = "data/"
+    ext = ".npy"
+
+    filename_sigma = datadir + dataname + "_sigma" + ext
+    filename_offset = datadir + dataname + "_offset" + ext
+    filename_alphas = datadir + dataname + "_alphas" + ext
+    filename_representations = datadir + dataname + "_X" + ext
+    filename_charges = datadir + dataname + "_Q" + ext
+
+    offset = np.load(filename_offset)
+    sigma = np.load(filename_sigma)
+
+    # LOAD AND SET MODEL
+    parameters = {}
+    parameters["offset"] = offset
+    parameters["sigma"] = sigma
+
+    alphas = np.load(filename_alphas)
+    X = np.load(filename_representations)
+    Q = np.load(filename_charges)
+
+    alphas = np.array(alphas, order="F")
+    X = np.array(X, order="F")
+
+    # SET CALCULATE CLASS
+    calculator = QMLCalculator(parameters, X, Q, alphas)
+
+    return calculator
+
