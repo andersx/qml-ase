@@ -33,10 +33,14 @@ class QMLCalculator(Calculator):
                 'No ASE atoms supplied to calculation, and no ASE atoms supplied with initialisation.')
 
         self.query(atoms)
+
         if 'energy' in properties:
             self.results['energy'] = self.energy
+
         if 'forces' in properties:
             self.results['forces'] = self.forces
+
+        return
 
     def set_model(self, alphas, representations, charges, offset, sigma):
 
@@ -64,6 +68,7 @@ class QMLCalculator(Calculator):
 
         coordinates = atoms.get_positions()
         nuclear_charges = atoms.get_atomic_numbers()
+        n_atoms = coordinates.shape[0]
 
         rep, drep = generate_fchl_acsf(
             nuclear_charges,
@@ -85,15 +90,12 @@ class QMLCalculator(Calculator):
         self.energy = energy_predicted * conv_energy
 
         # Force prediction
-        forces_predicted = np.dot(Ks, self.alphas).reshape((self.n_atoms, 3))
+        forces_predicted = np.dot(Ks, self.alphas).reshape((n_atoms, 3))
         self.forces = forces_predicted * conv_force
 
         return
 
     def get_potential_energy(self, atoms=None, force_consistent=False):
-
-        # if self.energy == 0.0:
-        #     self.query(atoms=atoms)
 
         energy = self.energy
 
