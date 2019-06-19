@@ -72,6 +72,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mol', action='store', default=None, help='Load molecule for live simulation', metavar="FILE")
     parser.add_argument('--model', action='store', default="ethanol", help='')
+    parser.add_argument('--temp', action='store', default=None, help='')
     args = parser.parse_args()
 
     if args.mol is None:

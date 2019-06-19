@@ -59,7 +59,10 @@ class QMLCalculator(Calculator):
 
         return
 
-    def query(self, atoms=None):
+    def query(self, atoms=None, print_time=True):
+
+        if print_time:
+            start = time.time()
 
         # kcal/mol til ev
         # kcal/mol/aangstrom til ev / aangstorm
@@ -92,6 +95,10 @@ class QMLCalculator(Calculator):
         # Force prediction
         forces_predicted = np.dot(Ks, self.alphas).reshape((n_atoms, 3))
         self.forces = forces_predicted * conv_force
+
+        if print_time:
+            end = time.time()
+            print("qml query {:7.4f}".format(end-start))
 
         return
 
