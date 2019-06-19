@@ -56,7 +56,7 @@ def get_data_from_file(filename, n=100):
     return X, dX, Q, E, F
 
 
-def train(dataname, n_train=40):
+def train(dataname, n_train=100):
 
     SIGMA = 10.0
 
@@ -68,7 +68,6 @@ def train(dataname, n_train=40):
     offset = E.mean()
     E  -= offset
     print("OFFSET: ", offset)
-
 
     F = np.concatenate(F)
     Y = np.concatenate((E, F.flatten()))
