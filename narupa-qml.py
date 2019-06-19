@@ -7,6 +7,7 @@ from ase import units
 from ase.io.trajectory import Trajectory
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.md.verlet import VelocityVerlet
+from ase.md.nvtberendsen import NVTBerendsen
 from ase.optimize import BFGS
 from narupa.ase import ASEImdServer
 from calculators import QMLCalculator, get_calculator
@@ -30,7 +31,7 @@ def dump_xyz(atoms, filename):
     return
 
 
-def serve_md(nuclear_charges, coordinates, calculator=None):
+def serve_md(nuclear_charges, coordinates, calculator=None, temp=None):
     """
     """
 
@@ -54,8 +55,12 @@ def serve_md(nuclear_charges, coordinates, calculator=None):
     # Set the momenta corresponding to T=300K
     MaxwellBoltzmannDistribution(molecule, 200 * units.kB)
 
-    # We want to run MD with constant energy using the VelocityVerlet algorithm.
-    dyn = VelocityVerlet(molecule, 1 * units.fs)  # 5 fs time step.
+    if temp is None:
+        # We want to run MD with constant energy using the VelocityVerlet algorithm.
+        dyn = VelocityVerlet(molecule, 1 * units.fs)  # 1 fs time step.
+
+    else:
+        dyn = NVTBerendsen(molecule, 1*units.fs, temp, 1*units.fs)
 
     # SET AND SERVE NARUPA MD
     imd = ASEImdServer(dyn)
@@ -75,6 +80,8 @@ def main():
     parser.add_argument('--temp', action='store', default=None, help='')
     args = parser.parse_args()
 
+    # input
+
     if args.mol is None:
         nuclear_charges = np.array([6, 6, 8, 1, 1, 1, 1, 1, 1])
         coordinates = np.array(
@@ -91,8 +98,14 @@ def main():
 
         nuclear_charges, coordinates = rmsd.get_coordinates_xyz(args.mol)
 
+    # model and simulation
+
+    if args.temp is not None:
+        args.temp = float(args.temp)
+
     calculator = get_calculator(args.model)
-    serve_md(nuclear_charges, coordinates, calculator=calculator)
+
+    serve_md(nuclear_charges, coordinates, calculator=calculator, temp=args.temp)
 
     return
 

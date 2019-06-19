@@ -13,8 +13,8 @@ env:
 	${PYTHON} -m pip install numpy
 	${PYTHON} -m pip install -r requirements.txt --no-cache-dir
 
-protocol-narupa:
-	git clone --depth 1 https://gitlab.com/intangiblerealities/narupa-protocol.git narupa-protocol
+narupa-protocol:
+	git clone https://gitlab.com/intangiblerealities/narupa-protocol.git narupa-protocol
 	cd narupa-protocol; ./compile.sh --edit
 
 activate: env
@@ -27,7 +27,7 @@ test:
 	${PYTHON} test.py
 
 run_vr:
-	${PYTHON} narupa-qml.py
+	${PYTHON} narupa-qml.py --temp 250
 
 run_opt:
 	${PYTHON} optimize.py

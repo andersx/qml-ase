@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     dataname = args[0]
 
-    train(dataname)
+    train(dataname, n_train=100)
 
     # Get sample from test
     data = np.load("data/" + dataname + "-test.npz")
