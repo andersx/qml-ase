@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
 import sys
+import os
 
 import numpy as np
 np.random.seed(666)
 
+from copy import deepcopy
 import scipy
+import pandas
+import ast
 
 import qml
 
@@ -20,6 +24,7 @@ from qml.kernels import get_atomic_local_gradient_kernel
 FILENAME_TEST = "data/ethanol_ccsd_t-test.npz"
 FILENAME_TRAIN = "data/ethanol_ccsd_t-train.npz"
 
+MAX_ATOMS = 25
 
 def get_data_from_file(filename, n=100):
 
@@ -34,17 +39,17 @@ def get_data_from_file(filename, n=100):
 
     max_n = len(data["E"])
 
-    index = np.random.choice(max_n, size=n, replace=True)
+    index = np.random.choice(max_n, size=n, replace=False)
 
     nuclear_charges = data["z"]
-    max_atoms = len(nuclear_charges)
+    # max_atoms = len(nuclear_charges)
 
     for i in index:
 
         coordinates = data["R"][i]
         
         (rep, drep) = generate_fchl_acsf(nuclear_charges, coordinates,
-               gradients=True, pad=max_atoms)
+               gradients=True, pad=MAX_ATOMS, elements=[1,6,8])
 
         X.append(rep)
         dX.append(drep)
@@ -65,7 +70,84 @@ def get_data_from_file(filename, n=100):
     return X, dX, Q, E, F
 
 
-def test_fchl_acsf_operator():
+# def get_data_from_csv(dirname, n=100):
+
+def csv_to_reps(csv_filename, n=32):
+
+    # max_atoms = 12 # HARDCODED for ETHANOL
+
+    df = pandas.read_csv(csv_filename, sep=";|")
+
+
+    max_n = len(df["atomization_energy"])
+    index = np.random.choice(max_n, size=n, replace=False)
+    
+    print(csv_filename, max_n)
+
+    X  = []
+    dX = []
+    Q  = []
+
+    E  = []
+    F  = []
+
+
+    for i in index:
+
+        coordinates = np.array(ast.literal_eval(df["coordinates"][i]))
+        nuclear_charges = np.array(ast.literal_eval(df["nuclear_charges"][i]), dtype=np.int32)
+        atomtypes = ast.literal_eval(df["atomtypes"][i])
+
+        force = np.array(ast.literal_eval(df["forces"][i]))
+        energy = float(df["atomization_energy"][i])
+
+        (rep, drep) = generate_fchl_acsf(nuclear_charges, coordinates,
+               gradients=True, pad=MAX_ATOMS, elements=[1,6,8])
+
+        X.append(rep)
+        dX.append(drep)
+        Q.append(nuclear_charges)
+        E.append(energy)
+        F.append(force)
+
+    X  = np.array(X)
+    dX = np.array(dX)
+    E  = np.array(E).flatten()
+    #  = np.concatenate(F)
+
+    return X, dX, Q, E, F
+
+
+def csvdir_to_reps(dirname):
+
+    csv_files = os.listdir(dirname) 
+
+    X  = []
+    dX = []
+    Q  = []
+
+    E  = []
+    F  = []
+
+    for f in csv_files:
+    
+        X1,  dX1,  Q1,  E1,  F1  = csv_to_reps(dirname + f)
+
+        X.append(X1)
+        dX.append(dX1)
+        Q += Q1
+        E.append(E1)
+        F +=F1 
+
+    X = np.concatenate(X)
+    dX = np.concatenate(dX)
+    E = np.concatenate(E)
+
+
+    return X, dX, Q, E, F
+
+
+def test_fchl_acsf_operator_ccsd():
 
     SIGMA = 10.0
 
@@ -80,7 +162,6 @@ def test_fchl_acsf_operator():
     F = np.concatenate(F)
     Fs = np.concatenate(Fs)
 
-    Y = np.concatenate((E, F.flatten()))
 
     print("Kernels ...")
     Kte = get_atomic_local_kernel(X, X,  Q, Q,  SIGMA)
@@ -90,6 +171,80 @@ def test_fchl_acsf_operator():
     Ks = get_atomic_local_gradient_kernel(X, Xs, dXs, Q, Qs, SIGMA)
 
     C = np.concatenate((Kte, Kt))
+    Y = np.concatenate((E, F.flatten()))
+
+    print("Alphas operator ...")
+    alpha = svd_solve(C, Y, rcond=1e-11)
+
+    eYt = np.dot(Kte, alpha)
+    eYs = np.dot(Kse, alpha)
+
+    fYt = np.dot(Kt, alpha)
+    fYs = np.dot(Ks, alpha)
+
+
+    print("===============================================================================================")
+    print("====  OPERATOR, FORCE + ENERGY  ===============================================================")
+    print("===============================================================================================")
+
+    slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(E, eYt)
+    print("TRAINING ENERGY   MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f" % \
+            (np.mean(np.abs(E - eYt)), slope, intercept, r_value ))
+
+    slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(F.flatten(), fYt.flatten())
+    print("TRAINING FORCE    MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f" % \
+             (np.mean(np.abs(F.flatten() - fYt.flatten())), slope, intercept, r_value ))
+
+    slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(Es.flatten(), eYs.flatten())
+    print("TEST     ENERGY   MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f" % \
+            (np.mean(np.abs(Es - eYs)), slope, intercept, r_value ))
+
+    slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(Fs.flatten(), fYs.flatten())
+    print("TEST     FORCE    MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f" % \
+            (np.mean(np.abs(Fs.flatten() - fYs.flatten())), slope, intercept, r_value ))
+
+
+def test_fchl_acsf_operator_dft():
+
+    SIGMA = 10.0
+
+
+    Xall,  dXall,  Qall,  Eall,  Fall  = csvdir_to_reps("csv_data/")
+
+    idx = list(range(len(Eall)))
+    np.random.shuffle(idx)
+
+    print(len(idx))
+    train = idx[:100]
+    test = idx[100:]
+    print("train = ", len(train), "      test = ", len(test))
+   
+    X  = Xall[train]
+    dX = dXall[train]
+    Q  = [Qall[i] for i in train]
+    E  = Eall[train]
+    F  = [Fall[i] for i in train]
+
+    Xs  = Xall[test]
+    dXs = dXall[test]
+    Qs  =  [Qall[i] for i in test]
+    Es  = Eall[test]
+    Fs  = [Fall[i] for i in test]
+
+
+    print("Representations ...")
+    F = np.concatenate(F)
+    Fs = np.concatenate(Fs)
+
+    print("Kernels ...")
+    Kte = get_atomic_local_kernel(X, X,  Q, Q,  SIGMA)
+    Kse = get_atomic_local_kernel(X, Xs, Q, Qs, SIGMA)
+
+    Kt = get_atomic_local_gradient_kernel(X, X,  dX,  Q, Q,  SIGMA)
+    Ks = get_atomic_local_gradient_kernel(X, Xs, dXs, Q, Qs, SIGMA)
+
+    C = np.concatenate((Kte, Kt))
+    Y = np.concatenate((E, F.flatten()))
 
     print("Alphas operator ...")
     alpha = svd_solve(C, Y, rcond=1e-11)
@@ -219,6 +374,7 @@ def predict_only():
 
 if __name__ == "__main__":
 
-    test_fchl_acsf_operator()
-    train_only()
-    predict_only()
+    # test_fchl_acsf_operator_ccsd()
+    test_fchl_acsf_operator_dft()
+    # train_only()
+    # predict_only()
