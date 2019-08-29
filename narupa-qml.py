@@ -10,7 +10,10 @@ from ase.md.verlet import VelocityVerlet
 from ase.md.nvtberendsen import NVTBerendsen
 from ase.optimize import BFGS
 from narupa.ase import ASEImdServer
-from calculators import QMLCalculator, get_calculator
+from calculators import QMLCalculator, get_calculator, get_calculator_rdkit
+
+from ase.calculators.lj import LennardJones
+from ase.calculators.emt import EMT
 
 FILENAME_ALPHAS = "data/training_alphas.npy"
 FILENAME_REPRESENTATIONS = "data/training_X.npy"
@@ -43,7 +46,7 @@ def serve_md(nuclear_charges, coordinates, calculator=None, temp=None):
         parameters["sigma"] = 10.0
         alphas = np.load(FILENAME_ALPHAS)
         X = np.load(FILENAME_REPRESENTATIONS)
-        Q = np.load(FILENAME_CHARGES)
+        Q = np.load(FILENAME_CHARGES, allow_pickle=True)
         alphas = np.array(alphas, order="F")
         X = np.array(X, order="F")
         calculator = QMLCalculator(parameters, X, Q, alphas)
@@ -57,18 +60,21 @@ def serve_md(nuclear_charges, coordinates, calculator=None, temp=None):
     # Set the momenta corresponding to T=300K
     MaxwellBoltzmannDistribution(molecule, 200 * units.kB)
 
+    time = 0.5
+
     if temp is None:
         # We want to run MD with constant energy using the VelocityVerlet algorithm.
-        dyn = VelocityVerlet(molecule, 1 * units.fs)  # 1 fs time step.
+        dyn = VelocityVerlet(molecule, time * units.fs)  # 1 fs time step.
 
     else:
-        dyn = NVTBerendsen(molecule, 1*units.fs, temp, 1*units.fs)
+        dyn = NVTBerendsen(molecule, time*units.fs, temp, time*units.fs, fixcm=False)
 
     # SET AND SERVE NARUPA MD
     imd = ASEImdServer(dyn)
 
     while True:
         imd.run(10)
+        print("")
         dump_xyz(molecule, tmpdir + "snapshot.xyz")
 
     return

@@ -80,6 +80,7 @@ def csv_to_reps(csv_filename, n=32):
 
 
     max_n = len(df["atomization_energy"])
+    n = min(max_n, n)
     index = np.random.choice(max_n, size=n, replace=False)
     
     print(csv_filename, max_n)
@@ -101,8 +102,18 @@ def csv_to_reps(csv_filename, n=32):
         force = np.array(ast.literal_eval(df["forces"][i]))
         energy = float(df["atomization_energy"][i])
 
+        # HACK
+        new_cut = 4.0
+
+        cut_parameters = {
+                "rcut": new_cut,
+                "acut": new_cut,
+                # "nRs2": int(24 * new_cut / 8.0),
+                # "nRs3": int(20 * new_cut / 8.0),
+        }
+
         (rep, drep) = generate_fchl_acsf(nuclear_charges, coordinates,
-               gradients=True, pad=MAX_ATOMS, elements=[1,6,8])
+               gradients=True, pad=MAX_ATOMS, elements=[1,6,8], **cut_parameters)
 
         X.append(rep)
         dX.append(drep)

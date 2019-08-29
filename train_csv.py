@@ -64,7 +64,7 @@ def train(dataname, n_train=100):
     np.save("data/"+dataname+"_offset.npy", offset)
     np.save("data/"+dataname+"_sigma.npy", SIGMA)
     np.save("data/"+dataname+"_alphas.npy", alpha)
-    np.save("data/"+dataname+"_Q.npy", Q)
+    np.save("data/"+dataname+"_Q.npy", Q, allow_pickle=True)
     np.save("data/"+dataname+"_X.npy", X)
 
     return
