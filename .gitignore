@@ -1,6 +1,9 @@
+todo.md
 
 env
 narupa-protocol
+narupa-protocol-*
+examples
 
 *.cprof
 *.xyz
