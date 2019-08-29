@@ -1,0 +1,4 @@
+;atomization_energy;atomtypes;coordinates;dipole;forces;heavy;name;nuclear_charges;size;smiles;total_energy
+0;0.0;['H'];[[0.0, 0.0, 0.0]];[0.0, 0.0, 0.0];[[0.0, 0.0, 0.0]];0;free_atoms_001;[1];1;H;-9999.9999
+1;0.0;['C'];[[0.0, 0.0, 0.0]];[0.0, 0.0, 0.0];[[0.0, 0.0, 0.0]];1;free_atoms_002;[6];1;C;-9999.9999
+1;0.0;['O'];[[0.0, 0.0, 0.0]];[0.0, 0.0, 0.0];[[0.0, 0.0, 0.0]];1;free_atoms_003;[8];1;O;-9999.9999
