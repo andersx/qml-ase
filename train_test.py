@@ -131,7 +131,7 @@ def csvdir_to_reps(dirname):
 
     for f in csv_files:
     
-        X1,  dX1,  Q1,  E1,  F1  = csv_to_reps(dirname + f)
+        X1,  dX1,  Q1,  E1,  F1  = csv_to_reps(dirname + "/" + f)
 
         X.append(X1)
         dX.append(dX1)
@@ -209,7 +209,7 @@ def test_fchl_acsf_operator_dft():
     SIGMA = 10.0
 
 
-    Xall,  dXall,  Qall,  Eall,  Fall  = csvdir_to_reps("csv_data/")
+    Xall,  dXall,  Qall,  Eall,  Fall  = csvdir_to_reps("csv_data")
 
     idx = list(range(len(Eall)))
     np.random.shuffle(idx)
