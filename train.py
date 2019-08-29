@@ -91,17 +91,22 @@ def train(dataname, n_train=100):
 
 if __name__ == "__main__":
 
+    import argparse
     import sys
 
-    args = sys.argv[1:]
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--correct', action='store_true', help='Add penalty and correction molecules to kernel')
+    parser.add_argument('dataname', metavar='NAME', type=str)
 
-    if len(args) < 1:
+    args = parser.parse_args()
+
+    if len(sys.argv[1:]) < 1:
         print("choose some data")
         quit()
 
-    dataname = args[0]
+    dataname = args.dataname
 
-    train(dataname, n_train=100)
+    train(dataname, n_train=150)
 
     # Get sample from test
     data = np.load("data/" + dataname + "-test.npz")

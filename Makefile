@@ -21,13 +21,16 @@ activate: env
 	source activate ./env
 
 train:
-	${PYTHON} train.py ethanol
+	${PYTHON} train.py ethanol --correct
 
 test:
 	${PYTHON} test.py
 
 run_vr:
 	${PYTHON} narupa-qml.py --temp 250
+
+run_vr_aspirin:
+	${PYTHON} narupa-qml.py --temp 250 --model aspirin --mol examples/aspirin.xyz
 
 run_opt:
 	${PYTHON} optimize.py

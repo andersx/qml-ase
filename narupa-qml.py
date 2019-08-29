@@ -1,5 +1,5 @@
 import time
-
+import cheminfo
 import ase
 import numpy as np
 import rmsd
@@ -16,11 +16,13 @@ FILENAME_ALPHAS = "data/training_alphas.npy"
 FILENAME_REPRESENTATIONS = "data/training_X.npy"
 FILENAME_CHARGES = "data/training_Q.npy"
 
+tmpdir = "_tmp_/"
+
 
 def dump_xyz(atoms, filename):
     coordinates = atoms.get_positions()
     nuclear_charges = atoms.get_atomic_numbers()
-    nuclear_charges = [str(x) for x in nuclear_charges]
+    nuclear_charges = [cheminfo.convert(x) for x in nuclear_charges]
 
     x = rmsd.set_coordinates(nuclear_charges, coordinates)
 
@@ -67,6 +69,7 @@ def serve_md(nuclear_charges, coordinates, calculator=None, temp=None):
 
     while True:
         imd.run(10)
+        dump_xyz(molecule, tmpdir + "snapshot.xyz")
 
     return
 
